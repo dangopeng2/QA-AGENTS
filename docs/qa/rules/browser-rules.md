@@ -291,6 +291,54 @@ Disconnected → Connecting → Connected → Disconnected
 
 ---
 
+## 8.3 侧边栏 Tab 排序偏好设置规则
+
+本章节用于约束 Browser 竖向侧边栏中新建 Tab 的插入位置偏好、滚动行为与相关边界逻辑。
+
+### 8.3.1 偏好项与入口
+
+| 配置项 / 场景 | 规则 |
+|--------------|------|
+| 持久化偏好 `newBrowserTabPosition` | 仅支持 `top` 与 `bottom` 两个取值，默认值为 `bottom` |
+| 侧边栏展开态 | 底部右下角显示 Settings 图标，点击后弹出 ActionList |
+| 侧边栏收起态 | 不显示 Settings 图标 |
+| ActionList 菜单 | 提供 `新标签位置` 选项，包含 `顶部` 与 `底部` |
+
+### 8.3.2 新建 Tab 插入与自动滚动
+
+| 模式 | 规则 |
+|------|------|
+| `top` | 新建 Tab 插入到 unpinned 区顶部，侧边栏自动滚动到顶部 |
+| `bottom` | 新建 Tab 追加到 unpinned 区底部，侧边栏自动滚动到底部 |
+| 连续新建 | 按当前偏好持续叠放，最新创建的 Tab 位于当前偏好对应的一端 |
+| 偏好切换 | 仅影响后续新建 Tab，不主动重排已有 unpinned Tab |
+
+### 8.3.3 URL 变化与排序保持
+
+- `top` 模式下，Tab 创建后在页内导航或 URL 变化时保持创建时位置，不因 `setWebTabData` 重置 `timestamp` 而跳到底部。
+- `bottom` 模式下，URL 变化行为保持旧逻辑。
+
+### 8.3.4 Popover 与侧边栏展开态保护
+
+- Settings 的 ActionList 打开期间，通过 `reportPopoverOpen` 阻止侧边栏因 hover 区域变化被误收起。
+- 鼠标移入 ActionList 弹出层时，侧边栏保持展开。
+- 关闭 ActionList 后，若鼠标已离开侧边栏与弹出层区域，侧边栏再按原逻辑收起。
+
+### 8.3.5 与 Pinned / 拖拽 / Unpin 的关系
+
+| 场景 | 规则 |
+|------|------|
+| Pinned Tabs | 始终位于 unpinned 区上方，切换偏好不打乱 Pinned 区顺序 |
+| 拖拽排序 | 已通过拖拽形成的现有顺序不因偏好切换被覆盖 |
+| `top` 模式下 Unpin | Unpin 后的 Tab 回到 unpinned 区顶部 |
+
+### 8.3.6 持久化与兼容性
+
+- 重启 App 后保留上次选择的 `新标签位置` 偏好。
+- 老用户升级后默认值仍为 `bottom`，保持原有新增 Tab 追加到底部的行为。
+
+---
+
 ## 9. 规则维护指南
 
 ### 如何更新规则
@@ -312,3 +360,4 @@ Disconnected → Connecting → Connected → Disconnected
 |------|---------|
 | 2026-01-23 | 初始版本，从 qa-rules.md 提取 DApp 模块规则 |
 | 2026-03-19 | 新增首要账户对齐与同步模式（默认对齐/独立/始终使用）规则章节 |
+| 2026-04-23 | 新增侧边栏 Tab 排序偏好设置规则章节，覆盖默认值、Settings 入口、顶部/底部插入、自动滚动、URL 变化保持、popover 防误收起、Pinned / 拖拽 / Unpin 边界与持久化 |
